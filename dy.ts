@@ -108,7 +108,6 @@ new_code = mod(
 // })
 
 // TODO: Отдебажить: неправильно захватывает
-// отдебажить в regex101
 // new_code = mod(
 //     new_code,
 //     // @ts-ignore
