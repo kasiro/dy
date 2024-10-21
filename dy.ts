@@ -53,10 +53,7 @@ let new_code = mod(
 ).set((match_: any, code: any) => {
     code = code.replace(
         match_[0],
-        mat(
-            match_,
-            '= lambda $1: $2'
-        )
+        mat(match_, '= lambda $1: $2')
     )
     return code
 })
@@ -66,10 +63,7 @@ new_code = mod(
 ).set((match_: any, code: any) => {
     code = code.replace(
         match_[0],
-        mat(
-            match_,
-            ', lambda $1: $2'
-        )
+        mat(match_, ', lambda $1: $2')
     )
     return code
 })
@@ -80,10 +74,7 @@ new_code = mod(
 ).set((match_: any, code: any) => {
     code = code.replace(
         match_[0],
-        mat(
-            match_,
-            '$1def $2($4) -> $3:$5'
-        )
+        mat(match_, '$1def $2($4) -> $3:$5')
     )
     return code
 })
@@ -94,11 +85,9 @@ new_code = mod(
 ).set((match_: any, code: any) => {
     code = code.replace(
         match_[0],
-        mat(
-            match_,
-            '$1def $2($3):$4'
-        )
+        mat(match_, '$1def $2($3):$4')
     )
+    // console.log(code)
     return code
 })
 // new_code = mod(

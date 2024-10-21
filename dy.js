@@ -51,6 +51,7 @@ new_code = (0, mod_1.default)(new_code,
 // @ts-ignore
 /^([^\n\w]*?|)([^\n\s\t]*?) = \((.*?)\) => {(.*?)\n(\t*|\s*)}/ms).set(function (match_, code) {
     code = code.replace(match_[0], mat(match_, '$1def $2($3):$4'));
+    console.log(code);
     return code;
 });
 // new_code = mod(
@@ -69,7 +70,7 @@ new_code = (0, mod_1.default)(new_code,
 //     console.log(code)
 //     return code
 // })
-// TODO: Отдебажить
+// TODO: Отдебажить: неправильно захватывает
 // new_code = mod(
 //     new_code,
 //     // @ts-ignore
