@@ -1,5 +1,5 @@
 import mod from './mod';
-import { readFileSync } from 'fs';
+import * as fs from 'fs';
 
 class ff_ {
     path: string;
@@ -9,7 +9,7 @@ class ff_ {
     }
 
     public get(){
-        return readFileSync(this.path, 'utf-8')
+        return fs.readFileSync(this.path, 'utf-8')
     }
 }
 
@@ -108,22 +108,22 @@ new_code = mod(
 // })
 
 // TODO: Отдебажить: неправильно захватывает
-// new_code = mod(
-//     new_code,
-//     // @ts-ignore
-//     /\(([\w_]*?)\((.*?)\) => {(.*?)\n}/ms
-// ).set((match_: any, code: any) => {
-//     code = code.replace(
-//         mat(match_, '#def $1'),
-//         mat(match_, 'def $1($2):$3')
-//     )
-//     code = code.replace(
-//         match_[0],
-//         mat(match_, '($1')
-//     )
-//     // console.log(match_[3])
-//     console.log(code)
-//     return code
-// })
+new_code = mod(
+    new_code,
+    // @ts-ignore
+    /\(([\w_]*?)\((.*?)\) => {(.*?)\n}/ms
+).set((match_: any, code: any) => {
+    code = code.replace(
+        mat(match_, '#def $1'),
+        mat(match_, 'def $1($2):$3')
+    )
+    code = code.replace(
+        match_[0],
+        mat(match_, '($1')
+    )
+    // console.log(match_[3])
+    console.log(code)
+    return code
+})
 
 dy('../main.dy').get(new_code)

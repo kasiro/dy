@@ -1,13 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var mod_1 = require("./mod");
-var fs_1 = require("fs");
+var fs = require("fs");
 var ff_ = /** @class */ (function () {
     function ff_(path) {
         this.path = path;
     }
     ff_.prototype.get = function () {
-        return (0, fs_1.readFileSync)(this.path, 'utf-8');
+        return fs.readFileSync(this.path, 'utf-8');
     };
     return ff_;
 }());
@@ -71,22 +71,13 @@ new_code = (0, mod_1.default)(new_code,
 //     return code
 // })
 // TODO: Отдебажить: неправильно захватывает
-// отдебажить в regex101
-// new_code = mod(
-//     new_code,
-//     // @ts-ignore
-//     /\(([\w_]*?)\((.*?)\) => {(.*?)\n}/ms
-// ).set((match_: any, code: any) => {
-//     code = code.replace(
-//         mat(match_, '#def $1'),
-//         mat(match_, 'def $1($2):$3')
-//     )
-//     code = code.replace(
-//         match_[0],
-//         mat(match_, '($1')
-//     )
-//     // console.log(match_[3])
-//     console.log(code)
-//     return code
-// })
+new_code = (0, mod_1.default)(new_code, 
+// @ts-ignore
+/\(([\w_]*?)\((.*?)\) => {(.*?)\n}/ms).set(function (match_, code) {
+    code = code.replace(mat(match_, '#def $1'), mat(match_, 'def $1($2):$3'));
+    code = code.replace(match_[0], mat(match_, '($1'));
+    // console.log(match_[3])
+    console.log(code);
+    return code;
+});
 dy('../main.dy').get(new_code);
