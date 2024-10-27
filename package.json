@@ -1,5 +1,20 @@
 {
   "devDependencies": {
-    "@types/node": "^22.7.7"
+    "@jest/globals": "^29.7.0",
+    "@testdeck/mocha": "^0.3.3",
+    "@tsconfig/node20": "^20.1.4",
+    "@types/chai": "^5.0.0",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.7.7",
+    "chai": "^5.1.2",
+    "jest": "^29.7.0",
+    "mocha": "^10.7.3",
+    "nyc": "^17.1.0",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
+  },
+  "scripts": {
+    "test": "jest"
   }
 }
