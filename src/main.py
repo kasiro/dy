@@ -4,7 +4,6 @@ def check_(text: str) -> bool:
         return False
     if '(' in text or '(' in text and ')' in text:
          return True
-    if re.match('[^\n\s{4,}\t]*
-, text, flags=re.MULTILINE):
+    if re.match('[^\n\s{4,}\t]*$', text, flags=re.MULTILINE):
          return True
     return False

@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.mat = exports.count_ = exports.ff = void 0;
-var mod_1 = require("./mod");
 var fs = require("fs");
 var ff_ = /** @class */ (function () {
     function ff_(path) {
@@ -75,7 +74,6 @@ var new_code = dy('../../main.dy').getCode();
 //     )
 //     return code
 // })
-//
 // new_code = mod(
 //     new_code,
 //     /, ([^()]*?) => ([^{}()]*)/
@@ -86,12 +84,17 @@ var new_code = dy('../../main.dy').getCode();
 //     )
 //     return code
 // })
-new_code = (0, mod_1.default)(new_code, 
-// @ts-ignore
-/^([^\n\w]*?|)([^\n\s\t<>]*?)<(.*?)> = \((.*?)\) => {(.*?)\n(\t*|\s*|)}/ms).set(function (match_, code) {
-    code = code.replace(match_[0], mat(match_, '$1def $2($4) -> $3:$5'));
-    return code;
-});
+// new_code = mod(
+//     new_code,
+//     // @ts-ignore
+//     /^([^\n\w]*?|)([^\n\s\t<>]*?)<(.*?)> = \((.*?)\) => {(.*?)\n(\t*|\s*|)}/ms
+// ).set((match_: any, code: any) => {
+//     code = code.replace(
+//         match_[0],
+//         mat(match_, '$1def $2($4) -> $3:$5')
+//     )
+//     return code
+// })
 // new_code = mod(
 //     new_code,
 //     // @ts-ignore

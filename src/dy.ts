@@ -23,7 +23,7 @@ const ff = (path: string) => new ff_(path)
 
 class dy_ {
     protected path: string;
-    protected code: any;
+    protected code: string;
 
     public constructor(path: string) {
         this.path = path;
@@ -34,7 +34,7 @@ class dy_ {
         return this.code
     }
 
-    public put(code: any) {
+    public put(code: string) {
         const path = this.path.substring(0, this.path.length - 3)
         ff(`${path}.py`).put(code)
     }
@@ -63,7 +63,7 @@ let new_code = dy('../../main.dy').getCode()
 // new_code = mod(
 //     dy('../main.dy').getCode(),
 //     /= ([^()]*?) => ([^{}\n]*)/
-// ).set((match_: any, code: any) => {
+// ).set((match_: any, code: string) => {
 //     code = code.replace(
 //         match_[0],
 //         mat(match_, '= lambda $1: $2')
@@ -73,7 +73,7 @@ let new_code = dy('../../main.dy').getCode()
 // new_code = mod(
 //     new_code,
 //     /\(\((.*?)\) => ([^{}()]*?,)/
-// ).set((match_: any, code: any) => {
+// ).set((match_: any, code: string) => {
 //     code = code.replace(
 //         match_[0],
 //         mat(match_, '(lambda $1: $2')
@@ -86,7 +86,7 @@ let new_code = dy('../../main.dy').getCode()
 // new_code = mod(
 //     new_code,
 //     /, ([^()]*?) => ([^{}()]*)/
-// ).set((match_: any, code: any) => {
+// ).set((match_: any, code: string) => {
 //     code = code.replace(
 //         match_[0],
 //         mat(match_, ', lambda $1: $2')
@@ -97,7 +97,7 @@ let new_code = dy('../../main.dy').getCode()
 //     new_code,
 //     // @ts-ignore
 //     /^([^\n\w]*?|)([^\n\s\t<>]*?)<(.*?)> = \((.*?)\) => {(.*?)\n(\t*|\s*|)}/ms
-// ).set((match_: any, code: any) => {
+// ).set((match_: any, code: string) => {
 //     code = code.replace(
 //         match_[0],
 //         mat(match_, '$1def $2($4) -> $3:$5')
@@ -111,7 +111,7 @@ let new_code = dy('../../main.dy').getCode()
 //     new_code,
 //     // @ts-ignore
 //     /^([^\n\w]*?|)([^\n\s\t]*?) = \((.*?)\) => {(.*?)\n(\t*|\s*)}/ms
-// ).set((match_: any, code: any) => {
+// ).set((match_: any, code: string) => {
 //     code = code.replace(
 //         match_[0],
 //         mat(match_, '$1def $2($3):$4')
@@ -123,7 +123,7 @@ let new_code = dy('../../main.dy').getCode()
 //     new_code,
 //     // @ts-ignore
 //     /, ([\w_]*?)\(([^*\.]*?)\) => {(.*?)\n}/ms
-// ).set((match_: any, code: any) => {
+// ).set((match_: any, code: string) => {
 //     code = code.replace(
 //         mat(match_, '#def $1'),
 //         mat(match_, 'def $1($2):$3')
@@ -140,7 +140,7 @@ let new_code = dy('../../main.dy').getCode()
 //     new_code,
 //     // @ts-ignore
 //     /\(([\w_]*?)\(([^*\.]*?)\) => {(.*?)\n}/ms
-// ).set((match_: any, code: any) => {
+// ).set((match_: any, code: string) => {
 //     code = code.replace(
 //         mat(match_, '#def $1'),
 //         mat(match_, 'def $1($2):$3')
