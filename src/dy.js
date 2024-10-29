@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.mat = exports.count_ = exports.ff = void 0;
 var fs = require("fs");
 var ff_ = /** @class */ (function () {
     function ff_(path) {
@@ -17,7 +16,6 @@ var ff_ = /** @class */ (function () {
     return ff_;
 }());
 var ff = function (path) { return new ff_(path); };
-exports.ff = ff;
 var dy_ = /** @class */ (function () {
     function dy_(path) {
         this.path = path;
@@ -33,115 +31,111 @@ var dy_ = /** @class */ (function () {
     return dy_;
 }());
 var dy = function (path) { return new dy_(path); };
-var count_ = function (str, searchValue) {
-    var _a;
-    var count = 0, i = 0;
-    while (true) {
-        var r = str.indexOf(searchValue, i);
-        if (r !== -1)
-            _a = [count + 1, r + 1], count = _a[0], i = _a[1];
-        else
-            return count;
-    }
+var mod = function (code, regex_) {
+    return function (callback) {
+        return callback(regex_, code);
+    };
 };
-exports.count_ = count_;
-var mat = function (match_, to_) {
-    var c_ = count_(to_, '$');
-    for (var i = 1; i <= c_; i++) {
-        to_ = to_.replace('$' + i, match_[i]);
-    }
-    return to_;
-};
-exports.mat = mat;
 var new_code = dy('../../main.dy').getCode();
-// new_code = mod(
-//     dy('../main.dy').getCode(),
-//     /= ([^()]*?) => ([^{}\n]*)/
-// ).set((match_: any, code: any) => {
-//     code = code.replace(
-//         match_[0],
-//         mat(match_, '= lambda $1: $2')
-//     )
-//     return code
-// })
-// new_code = mod(
-//     new_code,
-//     /\(\((.*?)\) => ([^{}()]*?,)/
-// ).set((match_: any, code: any) => {
-//     code = code.replace(
-//         match_[0],
-//         mat(match_, '(lambda $1: $2')
-//     )
-//     return code
-// })
-// new_code = mod(
-//     new_code,
-//     /, ([^()]*?) => ([^{}()]*)/
-// ).set((match_: any, code: any) => {
-//     code = code.replace(
-//         match_[0],
-//         mat(match_, ', lambda $1: $2')
-//     )
-//     return code
-// })
-// new_code = mod(
-//     new_code,
-//     // @ts-ignore
-//     /^([^\n\w]*?|)([^\n\s\t<>]*?)<(.*?)> = \((.*?)\) => {(.*?)\n(\t*|\s*|)}/ms
-// ).set((match_: any, code: any) => {
-//     code = code.replace(
-//         match_[0],
-//         mat(match_, '$1def $2($4) -> $3:$5')
-//     )
-//     return code
-// })
-// new_code = mod(
-//     new_code,
-//     // @ts-ignore
-//     /^([^\n\w]*?|)([^\n\s\t]*?) = \((.*?)\) => {(.*?)\n(\t*|\s*)}/ms
-// ).set((match_: any, code: any) => {
-//     code = code.replace(
-//         match_[0],
-//         mat(match_, '$1def $2($3):$4')
-//     )
-//     // console.log(code)
-//     return code
-// })
-// new_code = mod(
-//     new_code,
-//     // @ts-ignore
-//     /, ([\w_]*?)\(([^*\.]*?)\) => {(.*?)\n}/ms
-// ).set((match_: any, code: any) => {
-//     code = code.replace(
-//         mat(match_, '#def $1'),
-//         mat(match_, 'def $1($2):$3')
-//     )
-//     code = code.replace(
-//         match_[0],
-//         mat(match_, ', $1')
-//     )
-//     // console.log(code)
-//     return code
-// })
-//
-// new_code = mod(
-//     new_code,
-//     // @ts-ignore
-//     /\(([\w_]*?)\(([^*\.]*?)\) => {(.*?)\n}/ms
-// ).set((match_: any, code: any) => {
-//     code = code.replace(
-//         mat(match_, '#def $1'),
-//         mat(match_, 'def $1($2):$3')
-//     )
-//     code = code.replace(
-//         match_[0],
-//         mat(match_, '($1')
-//     )
-//     // console.log(match_)
-//     // console.log(match_.length)
-//     // console.log(match_.length - 2)
-//     // console.log(code)
-//     return code
-// })
+new_code = mod(new_code, /= ([^()]*?) => ([^{}\n]*)/)(function (regex_, code) {
+    while (regex_.test(code)) {
+        code = code.replace(regex_, '= lambda $1: $2');
+    }
+    return code;
+});
+new_code = mod(new_code, /\(\((.*?)\) => ([^{}()]*?,)/)(function (regex_, code) {
+    while (regex_.test(code)) {
+        code = code.replace(regex_, '(lambda $1: $2');
+    }
+    return code;
+});
+new_code = mod(new_code, /, ([^()]*?) => ([^{}()]*)/)(function (regex_, code) {
+    while (regex_.test(code)) {
+        code = code.replace(regex_, ', lambda $1: $2');
+    }
+    return code;
+});
+new_code = mod(new_code, 
+// @ts-ignore
+/^([^\n\w]*?|)([^\n\s\t<>]*?) = \((.*?)\)(: \w*?)? => {(.*?)\n(\s*|\t*)}/ms)(function (regex_, code) {
+    var match_;
+    var mat = function (from_, to_) {
+        for (var key in to_) {
+            // @ts-ignore
+            var val = to_[key];
+            from_ = from_.replace(key, val);
+        }
+        return from_;
+    };
+    while ((match_ = regex_.exec(code)) !== null) {
+        if (match_[4] === undefined) {
+            code = code.replace(regex_, '$1def $2($3):$5');
+        }
+        else {
+            match_[4] = match_[4].substring(2, match_[4].length);
+            code = code.replace(regex_, mat('$1def $2($3) -> $4:$5', {
+                '$4': match_[4]
+            }));
+        }
+    }
+    return code;
+});
+new_code = mod(new_code, 
+// @ts-ignore
+/, ([\w_]*?)\(([^*\.]*?)\) => {(.*?)\n}/ms)(function (regex_, code) {
+    var match_;
+    var mat = function (from_, to_) {
+        for (var key in to_) {
+            // @ts-ignore
+            var val = to_[key];
+            from_ = from_.replace(key, val);
+        }
+        return from_;
+    };
+    while ((match_ = regex_.exec(code)) !== null) {
+        var name_1 = match_[1];
+        var args = match_[2];
+        var body = match_[3];
+        code = code.replace(mat('#def $1', {
+            '$1': name_1
+        }), mat('def $1($2):$3', {
+            '$1': name_1,
+            '$2': args,
+            '$3': body
+        }));
+        code = code.replace(match_[0], mat(', $1', {
+            '$1': name_1
+        }));
+    }
+    return code;
+});
+new_code = mod(new_code, 
+// @ts-ignore
+/\(([\w_]*?)\(([^*\.]*?)\) => {(.*?)\n}/ms)(function (regex_, code) {
+    var match_;
+    var mat = function (from_, to_) {
+        for (var key in to_) {
+            // @ts-ignore
+            var val = to_[key];
+            from_ = from_.replace(key, val);
+        }
+        return from_;
+    };
+    while ((match_ = regex_.exec(code)) !== null) {
+        var name_2 = match_[1];
+        var args = match_[2];
+        var body = match_[3];
+        code = code.replace(mat('#def $1', {
+            '$1': name_2
+        }), mat('def $1($2):$3', {
+            '$1': name_2,
+            '$2': args,
+            '$3': body
+        }));
+        code = code.replace(match_[0], mat('($1', { '$1': name_2 }));
+    }
+    return code;
+});
 // console.log(new_code)
 dy('../../main.dy').put(new_code);
+exports.default = ff;

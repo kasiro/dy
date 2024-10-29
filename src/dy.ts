@@ -1,4 +1,3 @@
-import mod from './mod';
 import * as fs from 'fs';
 
 class ff_ {
@@ -43,124 +42,157 @@ class dy_ {
 
 const dy = (path: string) => new dy_(path)
 
-const count_ = (str: string, searchValue: string) => {
-    let count = 0, i = 0;
-    while (true) {
-        const r = str.indexOf(searchValue, i);
-        if (r !== -1) [count, i] = [count + 1, r + 1];
-        else return count;
+const mod = (code: string, regex_: any) => {
+    return (callback: any) => {
+        return callback(regex_, code)
     }
-};
-
-const mat = (match_: any, to_: string) => {
-    const c_ = count_(to_, '$')
-    for (let i = 1; i <= c_; i++){
-        to_ = to_.replace('$'+i, match_[i])
-    }
-    return to_
 }
 let new_code = dy('../../main.dy').getCode()
-// new_code = mod(
-//     dy('../main.dy').getCode(),
-//     /= ([^()]*?) => ([^{}\n]*)/
-// ).set((match_: any, code: string) => {
-//     code = code.replace(
-//         match_[0],
-//         mat(match_, '= lambda $1: $2')
-//     )
-//     return code
-// })
-// new_code = mod(
-//     new_code,
-//     /\(\((.*?)\) => ([^{}()]*?,)/
-// ).set((match_: any, code: string) => {
-//     code = code.replace(
-//         match_[0],
-//         mat(match_, '(lambda $1: $2')
-//     )
-//     return code
-// })
+new_code = mod(
+    new_code,
+    /= ([^()]*?) => ([^{}\n]*)/
+)((regex_: any, code: string) => {
+    while (regex_.test(code)) {
+        code = code.replace(
+            regex_,
+            '= lambda $1: $2'
+        )   
+    }
+    return code
+})
+new_code = mod(
+    new_code,
+    /\(\((.*?)\) => ([^{}()]*?,)/
+)((regex_: any, code: string) => {
+    while (regex_.test(code)) {
+        code = code.replace(
+            regex_,
+            '(lambda $1: $2'
+        )
+    }
+    return code
+})
+new_code = mod(
+    new_code,
+    /, ([^()]*?) => ([^{}()]*)/
+)((regex_: any, code: string) => {
+    while (regex_.test(code)) {
+        code = code.replace(
+            regex_,
+            ', lambda $1: $2'
+        )
+    }
+    return code
+})
+new_code = mod(
+    new_code,
+    // @ts-ignore
+    /^([^\n\w]*?|)([^\n\s\t<>]*?) = \((.*?)\)(: \w*?)? => {(.*?)\n(\s*|\t*)}/ms
+)((regex_: any, code: string) => {
+    let match_;
+    const mat = (from_: string, to_: object) => {
+        for (const key in to_) {
+            // @ts-ignore
+            const val: string = to_[key]
+            from_ = from_.replace(key, val)
+        }
+        return from_
+    }
+    while ((match_ = regex_.exec(code)) !== null) {
+        if (match_[4] === undefined) {
+            code = code.replace(
+                regex_,
+                '$1def $2($3):$5'
+            )
+        } else {
+            match_[4] = match_[4].substring(
+                2, match_[4].length
+            )
+            code = code.replace(
+                regex_,
+                mat('$1def $2($3) -> $4:$5', {
+                    '$4': match_[4]
+                })
+            )
+        }
+    }
+    return code
+})
+new_code = mod(
+    new_code,
+    // @ts-ignore
+    /, ([\w_]*?)\(([^*\.]*?)\) => {(.*?)\n}/ms
+)((regex_: any, code: string) => {
+    let match_;
+    const mat = (from_: string, to_: object) => {
+        for (const key in to_) {
+            // @ts-ignore
+            const val: string = to_[key]
+            from_ = from_.replace(key, val)
+        }
+        return from_
+    }
+    while ((match_ = regex_.exec(code)) !== null) {
+        const name = match_[1]
+        const args = match_[2]
+        const body = match_[3]
+        code = code.replace(
+            mat('#def $1', {
+                '$1': name
+            }),
+            mat('def $1($2):$3', {
+                '$1': name,
+                '$2': args,
+                '$3': body
+            })
+        )
+        code = code.replace(
+            match_[0],
+            mat(', $1', {
+                '$1': name
+            })
+        )
+    }
+    return code
+})
 
-
-
-// new_code = mod(
-//     new_code,
-//     /, ([^()]*?) => ([^{}()]*)/
-// ).set((match_: any, code: string) => {
-//     code = code.replace(
-//         match_[0],
-//         mat(match_, ', lambda $1: $2')
-//     )
-//     return code
-// })
-// new_code = mod(
-//     new_code,
-//     // @ts-ignore
-//     /^([^\n\w]*?|)([^\n\s\t<>]*?)<(.*?)> = \((.*?)\) => {(.*?)\n(\t*|\s*|)}/ms
-// ).set((match_: any, code: string) => {
-//     code = code.replace(
-//         match_[0],
-//         mat(match_, '$1def $2($4) -> $3:$5')
-//     )
-//     return code
-// })
-
-
-
-// new_code = mod(
-//     new_code,
-//     // @ts-ignore
-//     /^([^\n\w]*?|)([^\n\s\t]*?) = \((.*?)\) => {(.*?)\n(\t*|\s*)}/ms
-// ).set((match_: any, code: string) => {
-//     code = code.replace(
-//         match_[0],
-//         mat(match_, '$1def $2($3):$4')
-//     )
-//     // console.log(code)
-//     return code
-// })
-// new_code = mod(
-//     new_code,
-//     // @ts-ignore
-//     /, ([\w_]*?)\(([^*\.]*?)\) => {(.*?)\n}/ms
-// ).set((match_: any, code: string) => {
-//     code = code.replace(
-//         mat(match_, '#def $1'),
-//         mat(match_, 'def $1($2):$3')
-//     )
-//     code = code.replace(
-//         match_[0],
-//         mat(match_, ', $1')
-//     )
-//     // console.log(code)
-//     return code
-// })
-//
-// new_code = mod(
-//     new_code,
-//     // @ts-ignore
-//     /\(([\w_]*?)\(([^*\.]*?)\) => {(.*?)\n}/ms
-// ).set((match_: any, code: string) => {
-//     code = code.replace(
-//         mat(match_, '#def $1'),
-//         mat(match_, 'def $1($2):$3')
-//     )
-//     code = code.replace(
-//         match_[0],
-//         mat(match_, '($1')
-//     )
-//     // console.log(match_)
-//     // console.log(match_.length)
-//     // console.log(match_.length - 2)
-//     // console.log(code)
-//     return code
-// })
+new_code = mod(
+    new_code,
+    // @ts-ignore
+    /\(([\w_]*?)\(([^*\.]*?)\) => {(.*?)\n}/ms
+)((regex_: any, code: string) => {
+    let match_;
+    const mat = (from_: string, to_: object) => {
+        for (const key in to_) {
+            // @ts-ignore
+            const val: string = to_[key]
+            from_ = from_.replace(key, val)
+        }
+        return from_
+    }
+    while ((match_ = regex_.exec(code)) !== null) {
+        const name = match_[1]
+        const args = match_[2]
+        const body = match_[3]
+        code = code.replace(
+            mat('#def $1', {
+                '$1': name
+            }),
+            mat('def $1($2):$3', {
+                '$1': name,
+                '$2': args,
+                '$3': body
+            })
+        )
+        code = code.replace(
+            match_[0],
+            mat('($1', { '$1': name })
+        )
+    }
+    return code
+})
 
 // console.log(new_code)
 
 dy('../../main.dy').put(new_code)
-export {
-    ff,
-    count_,
-    mat
-};
+export default ff;
