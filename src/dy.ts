@@ -1,3 +1,4 @@
+import { log } from 'console';
 import * as fs from 'fs';
 
 class ff_ {
@@ -87,7 +88,7 @@ new_code = mod(
 new_code = mod(
     new_code,
     // @ts-ignore
-    /^([^\n\w]*?|)([^\n\s\t<>]*?) = \((.*?)\)(: \w*?)? => {(.*?)\n(\s*|\t*)}/ms
+    /^([^\n\w]*?|)const ([^\n\s\t<>]*?) = \((.*?)\)(: \w*?)? => {(.*?)\n(\s*|\t*)}/ms
 )((regex_: any, code: string) => {
     let match_;
     const mat = (from_: string, to_: object) => {
@@ -159,7 +160,7 @@ new_code = mod(
 new_code = mod(
     new_code,
     // @ts-ignore
-    /\(([\w_]*?)\(([^*\.]*?)\) => {(.*?)\n}/ms
+    /\(([\w_]*?)\(([^*\.]*?)\)(: \w*?)? => {(.*?)\n}/ms
 )((regex_: any, code: string) => {
     let match_;
     const mat = (from_: string, to_: object) => {
@@ -173,17 +174,37 @@ new_code = mod(
     while ((match_ = regex_.exec(code)) !== null) {
         const name = match_[1]
         const args = match_[2]
-        const body = match_[3]
-        code = code.replace(
-            mat('#def $1', {
-                '$1': name
-            }),
-            mat('def $1($2):$3', {
-                '$1': name,
-                '$2': args,
-                '$3': body
-            })
-        )
+        const body = match_[4]
+        let returnType = match_[3]
+        if (returnType === undefined){
+            code = code.replace(
+                mat('#def $1', {
+                    '$1': name
+                }),
+                mat('def $1($2):$3', {
+                    '$1': name,
+                    '$2': args,
+                    '$3': body
+                })
+            )
+            console.log(name)
+        } else {
+            returnType = returnType.substring(
+                2, returnType.length
+            )
+            console.log(name)
+            code = code.replace(
+                mat('#def $1', {
+                    '$1': name
+                }),
+                mat('def $1($2) -> $4:$3', {
+                    '$1': name,
+                    '$2': args,
+                    '$3': body,
+                    '$4': returnType
+                })
+            )
+        }
         code = code.replace(
             match_[0],
             mat('($1', { '$1': name })

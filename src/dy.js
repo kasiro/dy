@@ -57,7 +57,7 @@ new_code = mod(new_code, /, ([^()]*?) => ([^{}()]*)/)(function (regex_, code) {
 });
 new_code = mod(new_code, 
 // @ts-ignore
-/^([^\n\w]*?|)([^\n\s\t<>]*?) = \((.*?)\)(: \w*?)? => {(.*?)\n(\s*|\t*)}/ms)(function (regex_, code) {
+/^([^\n\w]*?|)const ([^\n\s\t<>]*?) = \((.*?)\)(: \w*?)? => {(.*?)\n(\s*|\t*)}/ms)(function (regex_, code) {
     var match_;
     var mat = function (from_, to_) {
         for (var key in to_) {
@@ -111,7 +111,7 @@ new_code = mod(new_code,
 });
 new_code = mod(new_code, 
 // @ts-ignore
-/\(([\w_]*?)\(([^*\.]*?)\) => {(.*?)\n}/ms)(function (regex_, code) {
+/\(([\w_]*?)\(([^*\.]*?)\)(: \w*?)? => {(.*?)\n}/ms)(function (regex_, code) {
     var match_;
     var mat = function (from_, to_) {
         for (var key in to_) {
@@ -124,14 +124,30 @@ new_code = mod(new_code,
     while ((match_ = regex_.exec(code)) !== null) {
         var name_2 = match_[1];
         var args = match_[2];
-        var body = match_[3];
-        code = code.replace(mat('#def $1', {
-            '$1': name_2
-        }), mat('def $1($2):$3', {
-            '$1': name_2,
-            '$2': args,
-            '$3': body
-        }));
+        var body = match_[4];
+        var returnType = match_[3];
+        if (returnType === undefined) {
+            code = code.replace(mat('#def $1', {
+                '$1': name_2
+            }), mat('def $1($2):$3', {
+                '$1': name_2,
+                '$2': args,
+                '$3': body
+            }));
+            console.log(name_2);
+        }
+        else {
+            returnType = returnType.substring(2, returnType.length);
+            console.log(name_2);
+            code = code.replace(mat('#def $1', {
+                '$1': name_2
+            }), mat('def $1($2) -> $4:$3', {
+                '$1': name_2,
+                '$2': args,
+                '$3': body,
+                '$4': returnType
+            }));
+        }
         code = code.replace(match_[0], mat('($1', { '$1': name_2 }));
     }
     return code;
