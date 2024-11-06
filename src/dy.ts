@@ -1,5 +1,27 @@
-import { log } from 'console';
 import * as fs from 'fs';
+import { join } from 'path';
+import { exit, cwd } from 'process';
+import { exec } from 'child_process';
+
+// @ts-ignore
+const error_handler = (error, stderr) => {
+    if (error) {
+        console.log(error.message)
+        return true
+    }
+    if (stderr) {
+        console.error(`Stderr: ${stderr}`)
+        return true
+    }
+    return false
+}
+const exec_ = (command: string) => {
+    exec(command, (error, stdout, stderr) => {
+        if (error_handler(error, stderr) === false) {
+            console.log(stdout);
+        }
+    })
+}
 
 class ff_ {
     path: string;
@@ -26,8 +48,14 @@ class dy_ {
     protected code: string;
 
     public constructor(path: string) {
-        this.path = path;
-        this.code = ff(path).get()
+        const ext = path.substring(path.length - 2)
+        if (ext === 'dy') {
+            this.path = path;
+            this.code = ff(path).get()
+        } else {
+            console.error('file extension is not .dy has a .' + ext)
+            exit()
+        }
     }
     
     public getCode(){
@@ -48,22 +76,38 @@ const mod = (code: string, regex_: any) => {
         return callback(regex_, code)
     }
 }
-let new_code = dy('../../main.dy').getCode()
+
+const mat = (from_: string, to_: object) => {
+    for (const key in to_) {
+        // @ts-ignore
+        const val: string = to_[key]
+        from_ = from_.replace(key, val)
+    }
+    return from_
+}
+const args_: string[] = process.argv.slice(2)
+const path_: string = args_[0]
+const path_dy = join(cwd(), path_)
+let new_code = dy(path_dy).getCode()
 new_code = mod(
     new_code,
-    /= ([^()]*?) => ([^{}\n]*)/
+    /= ((?:\w*?)) => ([^{}\n]*)/
 )((regex_: any, code: string) => {
-    while (regex_.test(code)) {
+    let match_;
+    while ((match_ = regex_.exec(code)) !== null) {
+        if (match_[1].length <= 0 || match_[2].length <= 0){
+            return code
+        }
         code = code.replace(
             regex_,
             '= lambda $1: $2'
-        )   
+        )
     }
     return code
 })
 new_code = mod(
     new_code,
-    /\(\((.*?)\) => ([^{}()]*?,)/
+    /\(\((.*?)\) => ([^{}]*?,)/
 )((regex_: any, code: string) => {
     while (regex_.test(code)) {
         code = code.replace(
@@ -88,17 +132,23 @@ new_code = mod(
 new_code = mod(
     new_code,
     // @ts-ignore
+    /^([^\n\w]*?|)const ([^\n\s\t<>]*?) => {(.*?)\n(\s*|\t*)}/ms
+)((regex_: any, code: string) => {
+    while (regex_.test(code)) {
+        code = code.replace(
+            regex_,
+            '$1def $2():$3'
+        )
+    }
+    return code
+})
+
+new_code = mod(
+    new_code,
+    // @ts-ignore
     /^([^\n\w]*?|)const ([^\n\s\t<>]*?) = \((.*?)\)(: \w*?)? => {(.*?)\n(\s*|\t*)}/ms
 )((regex_: any, code: string) => {
     let match_;
-    const mat = (from_: string, to_: object) => {
-        for (const key in to_) {
-            // @ts-ignore
-            const val: string = to_[key]
-            from_ = from_.replace(key, val)
-        }
-        return from_
-    }
     while ((match_ = regex_.exec(code)) !== null) {
         if (match_[4] === undefined) {
             code = code.replace(
@@ -125,14 +175,6 @@ new_code = mod(
     /, ([\w_]*?)\(([^*\.]*?)\) => {(.*?)\n}/ms
 )((regex_: any, code: string) => {
     let match_;
-    const mat = (from_: string, to_: object) => {
-        for (const key in to_) {
-            // @ts-ignore
-            const val: string = to_[key]
-            from_ = from_.replace(key, val)
-        }
-        return from_
-    }
     while ((match_ = regex_.exec(code)) !== null) {
         const name = match_[1]
         const args = match_[2]
@@ -163,14 +205,6 @@ new_code = mod(
     /\(([\w_]*?)\(([^*\.]*?)\)(: \w*?)? => {(.*?)\n}/ms
 )((regex_: any, code: string) => {
     let match_;
-    const mat = (from_: string, to_: object) => {
-        for (const key in to_) {
-            // @ts-ignore
-            const val: string = to_[key]
-            from_ = from_.replace(key, val)
-        }
-        return from_
-    }
     while ((match_ = regex_.exec(code)) !== null) {
         const name = match_[1]
         const args = match_[2]
@@ -187,12 +221,10 @@ new_code = mod(
                     '$3': body
                 })
             )
-            console.log(name)
         } else {
             returnType = returnType.substring(
                 2, returnType.length
             )
-            console.log(name)
             code = code.replace(
                 mat('#def $1', {
                     '$1': name
@@ -213,7 +245,14 @@ new_code = mod(
     return code
 })
 
-// console.log(new_code)
 
-dy('../../main.dy').put(new_code)
-export default ff;
+dy(path_dy).put(new_code)
+
+if (args_.length > 1) {
+    if (args_.includes('-e')) {
+        const path_py = path_dy.substring(0, path_dy.length - 3) + '.py'
+        exec_('python ' + path_py)
+    }
+}
+
+// export default ff;
