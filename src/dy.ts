@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import { join } from 'path';
 import { exit, cwd } from 'process';
 import { exec } from 'child_process';
+import { createHash } from 'crypto';
 
 // @ts-ignore
 const error_handler = (error, stderr) => {
@@ -85,10 +86,40 @@ const mat = (from_: string, to_: object) => {
     }
     return from_
 }
+
+const folderExists = (folderPath: string): boolean => {
+    return fs.existsSync(folderPath) && fs.statSync(folderPath).isDirectory();
+}
+
+const get_md5 = (filePath: string): string => {
+    const hash = createHash('md5');
+    const fileBuffer = fs.readFileSync(filePath); // Чтение файла синхронно
+    hash.update(fileBuffer); // Обновление хеша
+    return hash.digest('hex'); // Возвращаем хеш в виде строки
+}
+
 const args_: string[] = process.argv.slice(2)
 const path_: string = args_[0]
 const path_dy = join(cwd(), path_)
+const hash_path = join(__dirname, 'hash_')
 let new_code = dy(path_dy).getCode()
+
+
+if (folderExists(hash_path)) {
+    const no_ext_path = path_.substring(0, path_.length - 3) + '_'
+    const p = join(hash_path, no_ext_path)
+    if (fs.existsSync(p)) {
+        const last_hash = ff(p).get()
+        const current_hash = get_md5(path_dy)
+        if (last_hash == current_hash) {
+            console.log('no changes...')
+            exit()
+        }
+    } else {
+        ff(p).put(get_md5(path_dy))
+    }
+}
+
 new_code = mod(
     new_code,
     /= ((?:\w*?)) => ([^{}\n]*)/
