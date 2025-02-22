@@ -109,10 +109,14 @@ if (folderExists(hash_path)) {
     const no_ext_path = path_.substring(0, path_.length - 3) + '_'
     const p = join(hash_path, no_ext_path)
     if (fs.existsSync(p)) {
-        const last_hash = ff(p).get()
+        const last_hash = ff(p).get().trim()
         const current_hash = get_md5(path_dy)
         if (last_hash == current_hash) {
             console.log('no changes...')
+            // console.log('last:', last_hash)
+            // console.log('curr:', current_hash)
+            // console.log(p)
+            // console.log(path_dy)
             exit()
         }
     } else {
@@ -156,6 +160,19 @@ new_code = mod(
         code = code.replace(
             regex_,
             ', lambda $1: $2'
+        )
+    }
+    return code
+})
+new_code = mod(
+    new_code,
+    // @ts-ignore
+    /\((.*) \? (.*?) : (.*)\)/gm
+)((regex_: any, code: string) => {
+    while (regex_.test(code)) {
+        code = code.replace(
+            regex_,
+            '$2 if $1 else $3'
         )
     }
     return code
@@ -209,7 +226,13 @@ new_code = mod(
     while ((match_ = regex_.exec(code)) !== null) {
         const name = match_[1]
         const args = match_[2]
-        const body = match_[3]
+        let body = match_[3]
+        
+        if (body.startsWith(' # type: ignore')) {
+            console.log(body, 'has deleted...')
+            body = body.substring(' # type: ignore'.length)
+        }
+
         code = code.replace(
             mat('#def $1', {
                 '$1': name
