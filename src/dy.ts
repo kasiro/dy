@@ -256,7 +256,7 @@ new_code = mod(
 new_code = mod(
     new_code,
     // @ts-ignore
-    /\(([\w_]*?)\(([^*\.]*?)\)(: \w*?)? => {(.*?)\n}/ms
+    /\(([\w_]*?)\(([^*\.]*?)\)(: \w*?)? => {(.*?)\n(\s*?)?}/ms
 )((regex_: any, code: string) => {
     let match_;
     while ((match_ = regex_.exec(code)) !== null) {
